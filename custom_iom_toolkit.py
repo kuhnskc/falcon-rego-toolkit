@@ -38,6 +38,33 @@ CROWDSTRIKE_CLOUDS = {
     "US-GOV-2": "https://api.govcloud-us-east-1.crowdstrike.com"
 }
 
+def determine_cloud_provider_from_resource_type(resource_type):
+    """
+    Dynamically determine cloud provider and platform from resource type.
+    Replaces hardcoded AWS values with dynamic detection.
+    """
+    if not resource_type:
+        return {"platform": "AWS", "provider": "AWS"}  # Default fallback
+
+    # GCP/Google Cloud Platform
+    if "googleapis.com" in resource_type.lower():
+        return {"platform": "GCP", "provider": "GCP"}
+
+    # AWS
+    if resource_type.startswith("AWS::"):
+        return {"platform": "AWS", "provider": "AWS"}
+
+    # Azure/Microsoft
+    if resource_type.startswith("Microsoft."):
+        return {"platform": "Azure", "provider": "Azure"}
+
+    # Kubernetes (could be any cloud)
+    if "kubernetes" in resource_type.lower():
+        return {"platform": "Kubernetes", "provider": "Kubernetes"}
+
+    # Default to AWS for unknown types (maintaining backward compatibility)
+    return {"platform": "AWS", "provider": "AWS"}
+
 class Colors:
     """ANSI color codes for pretty output"""
     HEADER = '\033[95m'
@@ -778,7 +805,8 @@ class CustomIOMToolkit:
                                                 # Clean the remediation format to prevent duplication
                                                 existing_remediation = clean_remediation_format(raw_remediation)
 
-                                        logic_item = {"logic": new_logic, "platform": "AWS"}
+                                        cloud_provider = determine_cloud_provider_from_resource_type(resource_type)
+                                        logic_item = {"logic": new_logic, "platform": cloud_provider["platform"]}
                                         if existing_remediation:
                                             logic_item["remediation_info"] = existing_remediation
                                             print_success("Rego policy logic will be updated (preserving existing remediation steps)")
@@ -823,7 +851,8 @@ class CustomIOMToolkit:
                                     # Clean the remediation format to prevent duplication
                                     existing_remediation = clean_remediation_format(raw_remediation)
 
-                            logic_item = {"logic": new_logic, "platform": "AWS"}
+                            cloud_provider = determine_cloud_provider_from_resource_type(resource_type)
+                            logic_item = {"logic": new_logic, "platform": cloud_provider["platform"]}
                             if existing_remediation:
                                 logic_item["remediation_info"] = existing_remediation
                                 print_success("Rego policy logic will be updated (preserving existing remediation steps)")
@@ -889,10 +918,16 @@ class CustomIOMToolkit:
                         # Get current Rego logic to preserve it
                         current_logic = get_rego_logic(rule)
                         if current_logic:
+                            # Get resource type for dynamic provider detection
+                            resource_type = "Unknown"
+                            if rule.get('resource_types') and len(rule['resource_types']) > 0:
+                                resource_type = rule['resource_types'][0].get('resource_type', 'Unknown')
+
+                            cloud_provider = determine_cloud_provider_from_resource_type(resource_type)
                             payload["rule_logic_list"] = [
                                 {
                                     "logic": current_logic,
-                                    "platform": "AWS",
+                                    "platform": cloud_provider["platform"],
                                     "remediation_info": new_remediation
                                 }
                             ]
@@ -1915,14 +1950,15 @@ result = "fail" if {{
             headers = self._get_headers()
             create_url = f"{self.base_url}/cloud-policies/entities/rules/v1"
 
+            cloud_provider = determine_cloud_provider_from_resource_type(resource_type)
             payload = {
                 "name": name,
                 "description": description,
                 "logic": logic,
                 "resource_type": resource_type,
                 "severity": severity,
-                "platform": "AWS",
-                "provider": "AWS",
+                "platform": cloud_provider["platform"],
+                "provider": cloud_provider["provider"],
                 "domain": "CSPM",
                 "subdomain": "IOM",
                 "alert_info": alert_info,
@@ -1981,14 +2017,15 @@ result = "fail" if {{
         headers = self._get_headers()
         create_url = f"{self.base_url}/cloud-policies/entities/rules/v1"
 
+        cloud_provider = determine_cloud_provider_from_resource_type(resource_type)
         payload = {
             "name": name,
             "description": description,
             "logic": logic,
             "resource_type": resource_type,
             "severity": severity,
-            "platform": "AWS",
-            "provider": "AWS",
+            "platform": cloud_provider["platform"],
+            "provider": cloud_provider["provider"],
             "domain": "CSPM",
             "subdomain": "IOM",
             "alert_info": alert_info,

@@ -17,7 +17,7 @@ from typing import Dict, List, Any, Optional
 
 # Import from existing CLI
 try:
-    from custom_iom_toolkit import CustomIOMToolkit, Colors, clean_remediation_format, CROWDSTRIKE_CLOUDS
+    from custom_iom_toolkit import CustomIOMToolkit, Colors, clean_remediation_format, CROWDSTRIKE_CLOUDS, determine_cloud_provider_from_resource_type
 except ImportError as e:
     print(f"Error importing CLI: {e}")
     sys.exit(1)
@@ -1082,11 +1082,17 @@ class CustomIOMGUI:
                 headers = self.toolkit._get_headers()
                 update_url = f"{self.toolkit.base_url}/cloud-policies/entities/rules/v1"
 
+                # Get resource type for dynamic provider detection
+                resource_type = "Unknown"
+                if self.selected_policy.get('resource_types') and len(self.selected_policy['resource_types']) > 0:
+                    resource_type = self.selected_policy['resource_types'][0].get('resource_type', 'Unknown')
+
+                cloud_provider = determine_cloud_provider_from_resource_type(resource_type)
                 payload = {
                     "uuid": self.selected_policy['uuid'],
                     "rule_logic_list": [{
                         "logic": current_logic,
-                        "platform": "AWS",
+                        "platform": cloud_provider["platform"],
                         "remediation_info": new_remediation
                     }]
                 }
@@ -1851,7 +1857,13 @@ result = "fail" if {
             if rule_logic_list and len(rule_logic_list) > 0:
                 existing_remediation = rule_logic_list[0].get('remediation_info', '')
 
-            logic_item = {"logic": new_logic, "platform": "AWS"}
+            # Get resource type for dynamic provider detection
+            resource_type = "Unknown"
+            if self.selected_policy.get('resource_types') and len(self.selected_policy['resource_types']) > 0:
+                resource_type = self.selected_policy['resource_types'][0].get('resource_type', 'Unknown')
+
+            cloud_provider = determine_cloud_provider_from_resource_type(resource_type)
+            logic_item = {"logic": new_logic, "platform": cloud_provider["platform"]}
             if existing_remediation:
                 logic_item["remediation_info"] = existing_remediation
 
@@ -3083,14 +3095,15 @@ result = "fail" if {{
             create_url = f"{self.toolkit.base_url}/cloud-policies/entities/rules/v1"
 
             # Use the same payload structure as working CLI implementation
+            cloud_provider = determine_cloud_provider_from_resource_type(self.new_policy_data['resource_type'])
             payload = {
                 "name": self.new_policy_data['name'],
                 "description": self.new_policy_data['description'],
                 "logic": self.new_policy_data['rego_logic'],
                 "resource_type": self.new_policy_data['resource_type'],
                 "severity": self.new_policy_data['severity'],
-                "platform": "AWS",
-                "provider": "AWS",
+                "platform": cloud_provider["platform"],
+                "provider": cloud_provider["provider"],
                 "domain": "CSPM",
                 "subdomain": "IOM",
                 "alert_info": self.new_policy_data['alert_info'],
@@ -3164,14 +3177,15 @@ result = "fail" if {{
             create_url = f"{self.toolkit.base_url}/cloud-policies/entities/rules/v1"
 
             # Use the same payload structure as working CLI implementation
+            cloud_provider = determine_cloud_provider_from_resource_type(self.new_policy_data['resource_type'])
             payload = {
                 "name": self.new_policy_data['name'],
                 "description": self.new_policy_data['description'],
                 "logic": rego_logic,
                 "resource_type": self.new_policy_data['resource_type'],
                 "severity": int(self.new_policy_data['severity']),  # Ensure integer like CLI
-                "platform": "AWS",
-                "provider": "AWS",
+                "platform": cloud_provider["platform"],
+                "provider": cloud_provider["provider"],
                 "domain": "CSPM",
                 "subdomain": "IOM",
                 "alert_info": self.new_policy_data['alert_info'],
