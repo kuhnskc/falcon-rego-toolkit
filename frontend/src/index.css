@@ -1,0 +1,69 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Impeccable Design System — CrowdStrike Warm Dark Theme */
+  --bg-primary: #171520;
+  --bg-card: #23202e;
+  --bg-sidebar: #13111c;
+  --bg-code: #12101a;
+  --border: #2e2b3a;
+  --accent-red: #ED1C24;
+  --accent-red-hover: #c4161d;
+  --accent-green: #34d27b;
+  --accent-blue: #5b9cf5;
+  --accent-yellow: #f0a830;
+  --text-primary: #dcd8e8;
+  --text-bright: #f0ecfa;
+  --text-muted: #8b86a0;
+
+  /* Motion */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Smooth transitions for interactive elements */
+button, a, input, select, textarea {
+  transition: all var(--duration-fast) var(--ease-out-quart);
+}
+
+/* Custom scrollbar for warm dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3d3950;
+}

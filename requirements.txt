@@ -1,2 +1,0 @@
-requests>=2.25.0
-dearpygui==2.1.1
