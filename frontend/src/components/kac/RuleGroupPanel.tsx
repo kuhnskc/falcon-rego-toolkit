@@ -24,6 +24,8 @@ import * as kacApi from '../../api/kac';
 import type { KacRuleGroup, KacCustomRule, KacDefaultRule, KacEvaluateResult } from '../../api/types';
 import ConfirmDialog from '../common/ConfirmDialog';
 import RegoEditor from '../common/RegoEditor';
+import RegoHelpPanel from '../common/RegoHelpPanel';
+import TemplatePicker from '../common/TemplatePicker';
 
 interface RuleGroupPanelProps {
   policyId: string;
@@ -618,13 +620,9 @@ function AddCustomRuleForm({
         <label className="mb-1.5 block text-xs font-semibold text-gray-200">
           Rego Policy <span className="text-[#ED1C24]">*</span>
         </label>
-        <p className="mb-2 text-[11px] text-gray-400">
-          Must use <code className="rounded bg-[#2e2b3a] px-1 py-0.5 text-gray-300">package customrule</code>,
-          tabs for indentation,{' '}
-          <code className="rounded bg-[#2e2b3a] px-1 py-0.5 text-gray-300">some X in Y</code> for iteration,
-          and max 120 chars per line.
-        </p>
-        <div className="overflow-hidden rounded-lg border border-[#3a3650]">
+        <RegoHelpPanel variant="kac" />
+        <TemplatePicker variant="kac" onSelect={(code) => setRegoLogic(code)} currentCode={regoLogic} />
+        <div className="mt-2 overflow-hidden rounded-lg border border-[#3a3650]">
           <RegoEditor
             value={regoLogic}
             onChange={setRegoLogic}
@@ -1059,7 +1057,8 @@ function CustomRuleRow({
                   <label className="mb-1.5 block text-xs font-semibold text-gray-200">
                     Rego Policy <span className="text-[#ED1C24]">*</span>
                   </label>
-                  <div className="overflow-hidden rounded-lg border border-[#3a3650]">
+                  <RegoHelpPanel variant="kac" />
+                  <div className="mt-2 overflow-hidden rounded-lg border border-[#3a3650]">
                     <RegoEditor
                       value={editLogic}
                       onChange={setEditLogic}
