@@ -16,6 +16,8 @@ import { createPolicy, getResourceTypes, getSampleAsset, testPolicy } from '../.
 import type { CspmPolicyCreate, TestResult } from '../../api/types';
 import { SEVERITY_MAP } from '../../api/types';
 import RegoEditor from '../common/RegoEditor';
+import RegoHelpPanel from '../common/RegoHelpPanel';
+import TemplatePicker from '../common/TemplatePicker';
 import JsonViewer from '../common/JsonViewer';
 
 const TOTAL_STEPS = 8;
@@ -399,6 +401,8 @@ export default function PolicyCreateWizard() {
             <p className="text-sm text-gray-400">
               Write the OPA Rego logic that evaluates the cloud resource configuration.
             </p>
+            <RegoHelpPanel variant="cspm" />
+            <TemplatePicker variant="cspm" onSelect={(code) => updateField('logic', code)} currentCode={data.logic} />
             <RegoEditor
               value={data.logic}
               onChange={(val) => updateField('logic', val)}

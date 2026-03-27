@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
 
 from backend.common.crowdstrike_client import CrowdStrikeClient
@@ -212,20 +213,32 @@ class CspmService:
 
     # ── Discover resource types ─────────────────────────────────────
 
-    def discover_resource_types(self) -> list[str]:
+    def _fetch_resource_page(self, offset: int) -> set[str]:
+        """Fetch one page of resource IDs and extract resource types."""
+        types: set[str] = set()
         resp = self.client.get(
             "/cloud-security-assets/queries/resources/v1",
-            params={"limit": 500},
+            params={"limit": 1000, "offset": offset},
         )
         if resp.status_code != 200:
-            return []
-
-        resource_ids = resp.json().get("resources", [])
-        types = set()
-        for rid in resource_ids:
+            return types
+        for rid in resp.json().get("resources", []):
             parts = rid.split("|")
-            if len(parts) >= 2:
-                types.add(parts[1])
+            if len(parts) >= 5:
+                types.add(parts[4])
+        return types
+
+    def discover_resource_types(self) -> list[str]:
+        # Resource IDs are pipe-delimited: tenantId|cloud|accountId|region|resourceType|resourceId
+        # We need index 4 (resourceType) to get types like AWS::S3::Bucket
+        # Fetch 10 pages of 1000 in parallel (API caps at offset 10000)
+        offsets = list(range(0, 10000, 1000))
+        types: set[str] = set()
+
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            futures = {pool.submit(self._fetch_resource_page, o): o for o in offsets}
+            for future in as_completed(futures):
+                types.update(future.result())
 
         return sorted(types)
 
