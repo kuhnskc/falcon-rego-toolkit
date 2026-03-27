@@ -13,7 +13,7 @@ A web application for managing CrowdStrike Rego security policies across two pro
 docker run -p 8000:8000 kckuhns92/falcon-rego-toolkit:latest
 ```
 
-Open **http://localhost:8000** and enter your CrowdStrike API credentials. Credentials are stored in-memory only and never persisted.
+Supports **Intel (amd64)** and **Apple Silicon (arm64)**. Open **http://localhost:8000** and enter your CrowdStrike API credentials. Credentials are stored in-memory only and never persisted.
 
 ### Build from Source
 
